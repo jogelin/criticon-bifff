@@ -1,116 +1,88 @@
-import { ChangeDetectorRef } from '@angular/core';
-import { Component } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { Observable } from 'rxjs/Observable';
-import {
-  concatMap,
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  mergeMap,
-  startWith,
-  switchMap,
-  switchMapTo,
-  tap,
-  catchError
-} from 'rxjs/operators';
-import { Movie, search, SearchResult, SearchResults } from 'imdb-api';
-import { from } from 'rxjs/observable/from';
-import { of } from 'rxjs/observable/of';
-import { MatAutocompleteSelectedEvent } from '@angular/material';
 import { Subject } from 'rxjs/Subject';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { catchError, debounceTime, distinctUntilChanged, exhaustMap, map, switchMap, tap } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { TmdbApi, Movie, SearchResult } from 'tmdb-typescript-api';
+import { environment } from '../environments/environment';
+import { PartialObserver } from 'rxjs/Observer';
+import { Observable } from 'rxjs/Observable';
+import { Criticon } from './criticon.service';
+import { MovieCriticoned } from './criticon.model';
+
 
 @Component({
   selector: 'app-root',
   template: `
-    <mat-toolbar class="mat-elevation-z2">
-      <mat-toolbar-row>
-        <mat-form-field>
-          <input matInput placeholder="What is your favorite movie ?" [matAutocomplete]="auto" [formControl]="control" required>
-          <mat-error *ngIf="error">{{error}}</mat-error>
-          <mat-autocomplete #auto="matAutocomplete"  [displayWith]="displayFn">
-            <mat-option *ngFor="let movie of movies$ | async" [value]="movie">
-              <div>
-                <img *ngIf="movie.poster !== 'N/A'" style="vertical-align:middle;" aria-hidden src="{{movie.poster}}" width="30"/>
-                <mat-icon *ngIf="movie.poster === 'N/A'">movie</mat-icon>
-                <span>{{ movie.title }}</span>
-                <small>({{movie.year}})</small>
-              </div>
-            </mat-option>
-            <mat-progress-bar *ngIf="loading" mode="query"></mat-progress-bar>
-          </mat-autocomplete>
-          <mat-icon *ngIf="control.value" matSuffix (click)="control.reset()">close</mat-icon>
-        </mat-form-field>
-      </mat-toolbar-row>
+    <mat-toolbar class="mat-elevation-z1 grid-3_xs-1">
+      <app-search-field class="col-12" [loading]="loading" [observer]="observer"></app-search-field>
     </mat-toolbar>
 
-    <mat-card *ngIf="control.value && control.value !== '' && control.value.title">
-      <mat-card-header>
-        <img mat-card-avatar style="vertical-align:middle;" aria-hidden src="{{control.value.poster}}" height="25"/>
-        <mat-card-title>{{ control.value.title }}</mat-card-title>
-        <mat-card-subtitle>{{control.value.year}}</mat-card-subtitle>
-      </mat-card-header>
-    </mat-card>
-    {{error}}
-    {{control.value | json}}
-    {{movies$ | async | json}}
-
+    <div class="content">
+      <ng-container *ngIf="(searchResult$ | async) as searchResult">
+        <app-search-results [searchResult]="searchResult"></app-search-results>
+      </ng-container>
+    </div>
   `,
   styles: [
     `
-    .mat-toolbar-row {
+    .content {
+      margin-top: 96px;
+      padding: 16px;
+    }
+
+    .mat-toolbar{
       height:96px;
-    }
-
-    .mat-form-field {
-      width: 100%;
-    }
-
-    .mat-icon {
-      cursor:pointer;
-      font-size: 24px;
-    }
-
-    .mat-card-title {
-      font-size: 24px;
-      margin-bottom: 8px;
+      position: fixed;
+      top: 0;
+      z-index: 9999;
     }
   `
   ]
 })
-export class AppComponent {
-  control: FormControl;
-  movies$: Observable<SearchResult[]>;
+export class AppComponent implements OnInit {
+  api: TmdbApi = new TmdbApi(environment.tmdbApiKey);
+
+  observer: PartialObserver<string>;
+  searchResult$: Observable<SearchResult<MovieCriticoned>>;
+  private _subject: Subject<string>;
+
+  emptyResult: SearchResult<Movie> = {
+    page: 0,
+    results: [],
+    total_results: 0,
+    total_pages: 0
+  };
 
   error = '';
   loading = false;
 
-  constructor(private cd: ChangeDetectorRef) {
-    this.control = new FormControl();
-    this.movies$ = this.control.valueChanges.pipe(
+  constructor(private criticon: Criticon) {}
+
+  ngOnInit(): void {
+    this._subject = new Subject<string>();
+    this.observer = this._subject;
+    this.searchResult$ = this._subject.pipe(
       debounceTime(300),
-      tap(_ => this.error = null),
-      tap(_ => this.loading = true),
-      switchMap((value: string) => {
-        if (value && value.length > 1) {
-          return from(search({ title: value }, { apiKey: '126d66f3', timeout: 30000 })).pipe(
-            map((searchResults: SearchResults) => searchResults.results)
-          );
+      distinctUntilChanged(),
+      tap(_ => {
+        this.error = null;
+        this.loading = true;
+      }),
+      switchMap(query => {
+        if (query && query !== '') {
+          return this.api.search.movies(query);
         } else {
-          return of([]);
+          return this.api.search.movies(query);
+
+          // return of<SearchResult<Movie>>(this.emptyResult);
         }
       }),
-      tap(_ => this.loading = false),
-      catchError(error => {
-        this.error = error.message;
-        return of([]);
-      }),
-      tap(_ => this.cd.markForCheck),
-      tap(_ => this.cd.detectChanges),
+      map(searchResult => ({
+        ...searchResult,
+        results: searchResult.results.map(movie => this.criticon.critic(movie))
+      })),
+      tap(_ => (this.loading = false))
     );
-  }
-
-  displayFn(movie: Movie) {
-    return movie ? movie.title : movie;
   }
 }

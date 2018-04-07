@@ -1,3 +1,4 @@
+import { SearchFieldComponent } from './search-field.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
@@ -17,9 +18,11 @@ import {
 import { HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { SearchResultsComponent } from './search-results.component';
+import { Criticon } from './criticon.service';
+
 
 @NgModule({
-  declarations: [AppComponent],
   imports: [
     CommonModule,
     BrowserModule,
@@ -28,14 +31,15 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     ReactiveFormsModule,
     MatCardModule,
     MatInputModule,
-    MatAutocompleteModule,
     MatButtonModule,
     MatFormFieldModule,
     MatProgressBarModule,
     MatIconModule,
-    MatToolbarModule
+    MatToolbarModule,
+    HttpClientModule
   ],
-  providers: [],
-  bootstrap: [AppComponent]
+  declarations: [ AppComponent, SearchFieldComponent, SearchResultsComponent ],
+  providers:    [ Criticon ],
+  bootstrap:    [ AppComponent ]
 })
-export class AppModule {}
+export class AppModule { }
