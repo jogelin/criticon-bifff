@@ -1,25 +1,14 @@
-import { SearchFieldComponent } from './search-field.component';
-import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, MatToolbarModule } from '@angular/material';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppComponent } from './app.component';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import {
-  MatAutocompleteModule,
-  MatButtonModule,
-  MatCardModule,
-  MatFormFieldModule,
-  MatInputModule,
-  MatProgressSpinnerModule,
-  MatIconModule,
-  MatToolbarModule,
-  MatProgressBarModule
-} from '@angular/material';
-import { HttpClientModule } from '@angular/common/http';
-import { CommonModule } from '@angular/common';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { SearchResultsComponent } from './search-results.component';
 import { Criticon } from './criticon.service';
+import { SearchFieldComponent } from './search-field.component';
+import { SearchResultsComponent } from './search-results.component';
 
 
 @NgModule({
@@ -31,12 +20,9 @@ import { Criticon } from './criticon.service';
     ReactiveFormsModule,
     MatCardModule,
     MatInputModule,
-    MatButtonModule,
     MatFormFieldModule,
-    MatProgressBarModule,
     MatIconModule,
-    MatToolbarModule,
-    HttpClientModule
+    MatToolbarModule
   ],
   declarations: [ AppComponent, SearchFieldComponent, SearchResultsComponent ],
   providers:    [ Criticon ],

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Movie } from 'tmdb-typescript-api';
-import { Criticoner, MovieCriticoned, CriticonData } from './criticon.model';
+
+import { Criticoner, MovieCriticoned } from './criticon.model';
 import { data } from './data';
 
 export const reduceDigit = (value: number) => {
@@ -9,7 +10,7 @@ export const reduceDigit = (value: number) => {
     sum += value % 10;
     value = Math.floor(value / 10);
   }
-  return sum > 10 ? reduceDigit(sum) : sum;
+  return sum >= 10 ? reduceDigit(sum) : sum;
 };
 
 @Injectable()

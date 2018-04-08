@@ -1,22 +1,7 @@
-import { ChangeDetectorRef, Component, OnInit, Input, Output, OnDestroy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { Observable } from 'rxjs/Observable';
-import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  exhaustMap,
-  map,
-  switchMap,
-  tap,
-  switchMapTo
-} from 'rxjs/operators';
-import { from } from 'rxjs/observable/from';
-import { of } from 'rxjs/observable/of';
-import { HttpClient } from '@angular/common/http';
-import { EventEmitter } from 'events';
-import { Subscription } from 'rxjs/Subscription';
 import { PartialObserver } from 'rxjs/Observer';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'app-search-field',
@@ -48,7 +33,7 @@ export class SearchFieldComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this._subscription = this.control.valueChanges.subscribe(this.observer);
-    setTimeout(() => this.control.setValue('without title'), 300);
+    // setTimeout(() => this.control.setValue('Taxman'), 300);
   }
 
   ngOnDestroy(): void {

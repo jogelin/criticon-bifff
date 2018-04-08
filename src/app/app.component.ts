@@ -1,21 +1,20 @@
-import { Subject } from 'rxjs/Subject';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { catchError, debounceTime, distinctUntilChanged, exhaustMap, map, switchMap, tap } from 'rxjs/operators';
-import { HttpClient } from '@angular/common/http';
-import { TmdbApi, Movie, SearchResult } from 'tmdb-typescript-api';
-import { environment } from '../environments/environment';
-import { PartialObserver } from 'rxjs/Observer';
+import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { Criticon } from './criticon.service';
+import { of } from 'rxjs/observable/of';
+import { PartialObserver } from 'rxjs/Observer';
+import { debounceTime, distinctUntilChanged, map, switchMap, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs/Subject';
+import { Movie, SearchResult, TmdbApi } from 'tmdb-typescript-api';
+
 import { MovieCriticoned } from './criticon.model';
+import { Criticon } from './criticon.service';
 
 
 @Component({
   selector: 'app-root',
   template: `
-    <mat-toolbar class="mat-elevation-z1 grid-3_xs-1">
-      <app-search-field class="col-12" [loading]="loading" [observer]="observer"></app-search-field>
+    <mat-toolbar class="mat-elevation-z1 fixed top-0 left-0 z2">
+      <app-search-field class="flex-auto" [loading]="loading" [observer]="observer"></app-search-field>
     </mat-toolbar>
 
     <div class="content">
@@ -33,15 +32,12 @@ import { MovieCriticoned } from './criticon.model';
 
     .mat-toolbar{
       height:96px;
-      position: fixed;
-      top: 0;
-      z-index: 9999;
     }
   `
   ]
 })
 export class AppComponent implements OnInit {
-  api: TmdbApi = new TmdbApi(environment.tmdbApiKey);
+  api: TmdbApi = new TmdbApi('b35c3bc9289e42e0ee2a52a8e4216320');
 
   observer: PartialObserver<string>;
   searchResult$: Observable<SearchResult<MovieCriticoned>>;
@@ -73,9 +69,7 @@ export class AppComponent implements OnInit {
         if (query && query !== '') {
           return this.api.search.movies(query);
         } else {
-          return this.api.search.movies(query);
-
-          // return of<SearchResult<Movie>>(this.emptyResult);
+          return of(this.emptyResult);
         }
       }),
       map(searchResult => ({
